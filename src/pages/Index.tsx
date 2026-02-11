@@ -22,6 +22,10 @@ const Index = () => {
 
   const handleSelect = (sectionId: string, optionId: string, multi?: boolean) => {
     setSelections((prev) => {
+      // Quantity uses direct value setting from orbital selector
+      if (sectionId === "quantity") {
+        return { ...prev, quantity: optionId };
+      }
       if (multi) {
         const current = (prev[sectionId] as string[]) || [];
         const next = current.includes(optionId)
