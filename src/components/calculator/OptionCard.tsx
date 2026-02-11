@@ -18,49 +18,53 @@ const OptionCard = ({ option, selected, onSelect, compact }: OptionCardProps) =>
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={`relative flex flex-col items-center justify-center text-center 
         ${compact ? "p-4 min-h-[80px]" : "p-5 min-h-[120px]"} 
-        rounded-2xl border backdrop-blur-xl transition-colors duration-300 cursor-pointer w-full
-        ${selected
-          ? "glass-card-selected"
-          : "glass-card"
-        }`}
+        rounded-2xl border-2 backdrop-blur-xl transition-colors duration-300 cursor-pointer w-full
+        ${selected ? "glass-card-selected" : "glass-card"}`}
     >
       {selected && (
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
           className="check-badge"
         >
-          <Check className="w-3.5 h-3.5" />
+          <Check className="w-4 h-4" />
         </motion.div>
       )}
 
-      {option.icon && !compact && (
-        <span className="text-2xl mb-2">{option.icon}</span>
-      )}
+      <motion.div
+        animate={{ scale: selected ? 1.08 : 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="flex flex-col items-center"
+      >
+        {option.icon && !compact && (
+          <span className="text-2xl mb-2">{option.icon}</span>
+        )}
 
-      <span className={`font-semibold font-display ${compact ? "text-sm" : "text-base"} text-foreground`}>
-        {option.label}
-      </span>
-
-      {option.description && (
-        <span className="text-xs text-muted-foreground mt-1 leading-tight">
-          {option.description}
+        <span className={`font-semibold font-display ${compact ? "text-sm" : "text-base"} text-foreground`}>
+          {option.label}
         </span>
-      )}
 
-      {option.details?.map((d, i) => (
-        <span key={i} className="text-xs text-primary mt-0.5">{d}</span>
-      ))}
+        {option.description && (
+          <span className="text-xs text-muted-foreground mt-1 leading-tight">
+            {option.description}
+          </span>
+        )}
 
-      {option.included && (
-        <span className="text-xs text-primary mt-1.5 font-medium">✓ Inclus</span>
-      )}
+        {option.details?.map((d, i) => (
+          <span key={i} className="text-xs text-primary mt-0.5">{d}</span>
+        ))}
 
-      {option.priceAdd !== undefined && option.priceAdd > 0 && !option.included && (
-        <span className="text-xs text-primary mt-1.5 font-medium">
-          +{option.priceAdd >= 1 ? option.priceAdd.toFixed(2) : option.priceAdd.toFixed(2)}€
-        </span>
-      )}
+        {option.included && (
+          <span className="text-xs text-primary mt-1.5 font-medium">✓ Inclus</span>
+        )}
+
+        {option.priceAdd !== undefined && option.priceAdd > 0 && !option.included && (
+          <span className="text-xs text-primary mt-1.5 font-medium">
+            +{option.priceAdd.toFixed(2)}€
+          </span>
+        )}
+      </motion.div>
     </motion.button>
   );
 };

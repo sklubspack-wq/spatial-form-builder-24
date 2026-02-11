@@ -36,15 +36,18 @@
 
     --radius: 1rem;
 
-    --glass: 228 30% 100% / 0.06;
-    --glass-border: 228 30% 100% / 0.1;
-    --glass-hover: 228 30% 100% / 0.1;
-    --glass-selected: 43 80% 48% / 0.12;
-    --glass-selected-border: 43 80% 48% / 0.6;
+    --glass: 210 25% 23%;
+    --glass-border: 210 20% 30% / 0.5;
+    --glass-hover: 210 25% 28%;
+    --glass-selected: 24 100% 50% / 0.08;
+    --glass-selected-border: 24 100% 50%;
 
-    --gold: 43 80% 48%;
-    --gold-light: 43 80% 60%;
-    --gold-glow: 43 80% 48% / 0.25;
+    --gold: 24 100% 50%;
+    --gold-light: 24 100% 60%;
+    --gold-glow: 24 100% 50% / 0.35;
+
+    --check-badge: 210 100% 56%;
+    --grid-line: 220 10% 40%;
 
     --sidebar-background: 228 30% 8%;
     --sidebar-foreground: 210 40% 96%;
@@ -74,27 +77,61 @@
 
 @layer components {
   .glass-card {
-    @apply relative rounded-2xl border backdrop-blur-xl transition-all duration-300;
+    @apply relative rounded-2xl border-2 backdrop-blur-xl transition-all duration-300 overflow-hidden;
     background: hsl(var(--glass));
     border-color: hsl(var(--glass-border));
   }
 
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(hsl(var(--grid-line) / 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--grid-line) / 0.15) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .glass-card:hover {
     background: hsl(var(--glass-hover));
-    border-color: hsl(var(--glass-border));
+    border-color: hsl(var(--grid-line) / 0.4);
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px hsl(228 30% 0% / 0.4);
+    box-shadow: 0 8px 32px hsl(228 30% 0% / 0.5);
   }
 
   .glass-card-selected {
-    @apply relative rounded-2xl border backdrop-blur-xl transition-all duration-300;
+    @apply relative rounded-2xl border-2 backdrop-blur-xl transition-all duration-300 overflow-hidden;
     background: hsl(var(--glass-selected));
     border-color: hsl(var(--glass-selected-border));
-    box-shadow: 0 0 24px hsl(var(--gold-glow)), 0 8px 32px hsl(228 30% 0% / 0.4);
+    box-shadow: 0 0 20px hsl(var(--gold-glow)), 0 0 40px hsl(var(--gold-glow));
+  }
+
+  .glass-card-selected::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(hsl(var(--grid-line) / 0.2) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--grid-line) / 0.2) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass-card-selected > * {
+    position: relative;
+    z-index: 1;
   }
 
   .glass-card-selected:hover {
-    box-shadow: 0 0 32px hsl(var(--gold-glow)), 0 8px 32px hsl(228 30% 0% / 0.4);
+    box-shadow: 0 0 28px hsl(var(--gold-glow)), 0 0 50px hsl(var(--gold-glow));
   }
 
   .gold-gradient {
@@ -120,9 +157,29 @@
   }
 
   .check-badge {
-    @apply absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold;
-    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
-    color: hsl(var(--background));
-    box-shadow: 0 0 12px hsl(var(--gold-glow));
+    @apply absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold backdrop-blur-md;
+    background: hsl(var(--check-badge) / 0.2);
+    border: 1px solid hsl(var(--check-badge) / 0.5);
+    color: hsl(var(--check-badge));
+    box-shadow: 0 0 12px hsl(var(--check-badge) / 0.3);
+  }
+
+  .shimmer-btn {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 50%;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.25), transparent);
+    transform: skewX(25deg) translateX(-150%);
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: skewX(25deg) translateX(-150%); }
+    100% { transform: skewX(25deg) translateX(350%); }
   }
 }
