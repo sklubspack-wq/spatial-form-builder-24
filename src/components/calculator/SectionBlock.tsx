@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Pencil, Check, ChevronRight } from "lucide-react";
+import { Lock, Check, ChevronRight, Pencil } from "lucide-react";
 import type { Section } from "@/data/calculator-config";
 import OptionCard from "./OptionCard";
 import QuantitySelector from "./QuantitySelector";
@@ -15,6 +15,7 @@ interface SectionBlockProps {
   onContinue: () => void;
   onReopen: () => void;
   selectionLabel: string;
+  focusDepth?: boolean;
 }
 
 const SectionBlock = ({
@@ -27,6 +28,7 @@ const SectionBlock = ({
   onContinue,
   onReopen,
   selectionLabel,
+  focusDepth,
 }: SectionBlockProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,144 +42,180 @@ const SectionBlock = ({
     if (count <= 3) return "grid-cols-1 sm:grid-cols-3";
     if (count <= 4) return "grid-cols-2 sm:grid-cols-4";
     if (count <= 5) return "grid-cols-2 sm:grid-cols-5";
-    return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6";
+    return "grid-cols-2 sm:grid-cols-3";
   };
 
   const isQuantitySection = section.id === "quantity";
   const isMultiSelect = section.multiSelect || section.subsections?.some((s) => s.multiSelect);
 
-  // Auto-scroll when becoming active
   useEffect(() => {
     if (isActive && ref.current) {
       setTimeout(() => {
         ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 200);
+      }, 250);
     }
   }, [isActive]);
 
-  // -- LOCKED STATE --
+  // Desaturation for focus depth
+  const depthStyle = focusDepth && !isActive ? { filter: "saturate(0.5) brightness(0.85)", transition: "filter 0.5s ease" } : { transition: "filter 0.5s ease" };
+
+  // ── LOCKED ──
   if (isLocked) {
     return (
-      <div ref={ref} className="mb-2 py-4 px-4 rounded-2xl flex items-center gap-3 opacity-40">
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-muted text-muted-foreground text-sm font-bold">
-          {section.step}
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={depthStyle}
+        className="mb-3"
+      >
+        <div className="spatial-tray-locked p-5 sm:p-6 flex items-center gap-4">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted/30 text-muted-foreground text-sm font-bold font-display">
+            {section.step}
+          </div>
+          <div className="flex-1">
+            <span className="text-sm font-semibold text-muted-foreground/60">{section.title}</span>
+            <p className="text-[10px] text-muted-foreground/40 mt-0.5">Débloquez l'étape précédente</p>
+          </div>
+          <Lock className="w-4 h-4 text-muted-foreground/30" />
         </div>
-        <span className="text-sm font-medium text-muted-foreground">{section.title}</span>
-        <Lock className="w-4 h-4 text-muted-foreground ml-auto" />
-      </div>
+      </motion.div>
     );
   }
 
-  // -- COMPLETED (collapsed) STATE --
+  // ── COMPLETED ──
   if (isCompleted && !isActive) {
     return (
-      <motion.button
-        ref={ref as any}
-        onClick={onReopen}
-        initial={{ opacity: 0, y: -10 }}
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-2 w-full py-4 px-4 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 hover:bg-accent/50 text-left"
-        style={{
-          background: "hsl(var(--glass) / 0.5)",
-          borderWidth: 1,
-          borderColor: "hsl(var(--glass-border))",
-        }}
+        transition={{ duration: 0.3 }}
+        style={depthStyle}
+        className="mb-3"
       >
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center gold-gradient text-primary-foreground text-sm font-bold">
-          <Check className="w-4 h-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <span className="text-sm font-semibold text-foreground">{section.title}</span>
-          <span className="text-xs text-muted-foreground ml-2 truncate">{selectionLabel}</span>
-        </div>
-        <Pencil className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-      </motion.button>
+        <button
+          onClick={onReopen}
+          className="spatial-tray-completed w-full p-4 sm:p-5 flex items-center gap-4 text-left"
+        >
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center gold-gradient text-primary-foreground">
+            <Check className="w-4 h-4" strokeWidth={2.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-semibold text-foreground">{section.title}</span>
+            <span className="text-xs text-muted-foreground ml-2 truncate">{selectionLabel}</span>
+          </div>
+          <Pencil className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0" />
+        </button>
+      </motion.div>
     );
   }
 
-  // -- ACTIVE STATE --
+  // ── ACTIVE ──
   return (
-    <motion.section
+    <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="mb-2"
+      initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      style={depthStyle}
+      className="mb-3"
     >
-      <div className="mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground">
-          <span className="gold-text">{section.step}.</span> {section.title}
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">{section.subtitle}</p>
-      </div>
+      <div className="spatial-tray-active p-5 sm:p-8">
+        {/* Header */}
+        <div className="mb-5 sm:mb-6">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">
+              Étape {section.step}
+            </span>
+          </div>
+          <h2 className="text-lg sm:text-2xl font-bold font-display text-foreground tracking-tight">
+            {section.title}
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{section.subtitle}</p>
+        </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={section.id}
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        >
-          {isQuantitySection ? (
-            <QuantitySelector
-              selected={selections.quantity as string}
-              onSelect={(qty) => onSelect("quantity", qty)}
-            />
-          ) : (
-            <>
-              {section.options && (
-                <div className={`grid gap-3 ${gridCols(section.options.length)}`}>
-                  {section.options.map((opt) => (
-                    <OptionCard
-                      key={opt.id}
-                      option={opt}
-                      selected={isSelected(section.id, opt.id)}
-                      onSelect={() => onSelect(section.id, opt.id, section.multiSelect)}
-                      compact={section.options!.length > 5}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {section.subsections?.map((sub) => (
-                <div key={sub.id} className="mt-6">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
-                    {sub.title}
-                  </h3>
-                  <div className={`grid gap-3 ${gridCols(sub.options.length)}`}>
-                    {sub.options.map((opt) => (
-                      <OptionCard
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={section.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {isQuantitySection ? (
+              <QuantitySelector
+                selected={selections.quantity as string}
+                onSelect={(qty) => onSelect("quantity", qty)}
+              />
+            ) : (
+              <>
+                {section.options && (
+                  <div className={`grid gap-2.5 sm:gap-3 ${gridCols(section.options.length)}`}>
+                    {section.options.map((opt, i) => (
+                      <motion.div
                         key={opt.id}
-                        option={opt}
-                        selected={isSelected(sub.id, opt.id)}
-                        onSelect={() => onSelect(sub.id, opt.id, sub.multiSelect)}
-                        compact={sub.options.length > 4}
-                      />
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04, type: "spring", stiffness: 400, damping: 30 }}
+                      >
+                        <OptionCard
+                          option={opt}
+                          selected={isSelected(section.id, opt.id)}
+                          onSelect={() => onSelect(section.id, opt.id, section.multiSelect)}
+                          compact={section.options!.length > 5}
+                        />
+                      </motion.div>
                     ))}
                   </div>
-                </div>
-              ))}
-            </>
-          )}
+                )}
 
-          {/* Continue button for multi-select or always-complete sections */}
-          {(isMultiSelect || isQuantitySection || section.subsections) && (
-            <motion.button
-              onClick={onContinue}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="mt-6 w-full sm:w-auto px-8 py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 gold-gradient text-primary-foreground shadow-lg shadow-primary/20"
-            >
-              Continuer
-              <ChevronRight className="w-4 h-4" />
-            </motion.button>
-          )}
-        </motion.div>
-      </AnimatePresence>
+                {section.subsections?.map((sub) => (
+                  <div key={sub.id} className="mt-5 sm:mt-6">
+                    <h3 className="text-[10px] sm:text-xs font-semibold text-muted-foreground/70 mb-2.5 uppercase tracking-widest">
+                      {sub.title}
+                    </h3>
+                    <div className={`grid gap-2.5 sm:gap-3 ${gridCols(sub.options.length)}`}>
+                      {sub.options.map((opt, i) => (
+                        <motion.div
+                          key={opt.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03, type: "spring", stiffness: 400, damping: 30 }}
+                        >
+                          <OptionCard
+                            option={opt}
+                            selected={isSelected(sub.id, opt.id)}
+                            onSelect={() => onSelect(sub.id, opt.id, sub.multiSelect)}
+                            compact={sub.options.length > 4}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
 
-      <div className="section-divider" />
-    </motion.section>
+            {/* Continue for multi-select / quantity / subsections */}
+            {(isMultiSelect || isQuantitySection || section.subsections) && (
+              <motion.button
+                onClick={onContinue}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="mt-5 sm:mt-6 w-full sm:w-auto px-6 sm:px-8 py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 gold-gradient text-primary-foreground shadow-lg"
+                style={{ boxShadow: "0 4px 20px hsl(28 100% 52% / 0.25)" }}
+              >
+                Continuer
+                <ChevronRight className="w-4 h-4" />
+              </motion.button>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 

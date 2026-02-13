@@ -16,31 +16,31 @@ const formatQty = (q: string) => {
 const QuantitySelector = ({ selected, onSelect }: QuantitySelectorProps) => {
   return (
     <div className="flex flex-col gap-4">
-      {/* Orbital grid */}
-      <div className="grid grid-cols-4 gap-2">
-        {TIERS.map((q) => {
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        {TIERS.map((q, i) => {
           const isActive = selected === q;
           const price = basePriceByQuantity[q];
           return (
             <motion.button
               key={q}
               onClick={() => onSelect(q)}
-              whileTap={{ scale: 0.95 }}
-              className={`relative py-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
-                isActive
-                  ? "bg-primary/15 border-primary text-foreground shadow-[0_0_20px_hsl(var(--gold-glow))]"
-                  : "bg-muted/30 border-border text-muted-foreground hover:bg-muted/50 hover:border-muted-foreground/30"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03, type: "spring", stiffness: 400, damping: 30 }}
+              whileTap={{ scale: 0.97 }}
+              className={`relative py-4 rounded-[18px] cursor-pointer transition-all duration-300 ${
+                isActive ? "glass-tile-selected" : "glass-tile"
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="qty-glow"
-                  className="absolute inset-0 rounded-xl border-2 border-primary/50"
+                  className="absolute inset-0 rounded-[18px]"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <span className="block text-sm font-bold font-display">{formatQty(q)}</span>
-              <span className="block text-[10px] text-muted-foreground mt-0.5">
+              <span className="block text-sm font-bold font-display relative z-10">{formatQty(q)}</span>
+              <span className="block text-[10px] text-muted-foreground mt-0.5 relative z-10">
                 {price.toFixed(2)}€/u
               </span>
             </motion.button>
@@ -48,17 +48,17 @@ const QuantitySelector = ({ selected, onSelect }: QuantitySelectorProps) => {
         })}
       </div>
 
-      {/* Custom input */}
       <div className="relative">
         <input
           type="number"
           value={selected}
           onChange={(e) => onSelect(e.target.value)}
-          className="w-full bg-muted/20 border-2 border-border rounded-2xl py-4 px-6 text-foreground text-center font-medium font-display focus:outline-none focus:border-primary/40 transition-all placeholder:text-muted-foreground"
+          className="w-full glass-tile py-4 px-6 text-foreground text-center font-medium font-display focus:outline-none transition-all placeholder:text-muted-foreground border-none"
+          style={{ background: "hsl(220 25% 14% / 0.3)" }}
           placeholder="Quantité personnalisée..."
           min={100}
         />
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px] uppercase font-bold pointer-events-none tracking-wider">
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-[10px] uppercase font-bold pointer-events-none tracking-widest">
           PCS
         </div>
       </div>

@@ -54,16 +54,12 @@ const Index = () => {
 
   const isSectionCompleted = useCallback(
     (section: typeof calculatorSections[0]): boolean => {
-      // Multi-select sections are always "completable" via Continue button
       if (section.multiSelect) return true;
-
-      if (section.id === "quantity") return true; // always has default
-
+      if (section.id === "quantity") return true;
       if (section.options) {
         const val = selections[section.id];
         return typeof val === "string" && val !== "";
       }
-
       if (section.subsections) {
         return section.subsections.every((sub) => {
           if (sub.multiSelect) return true;
@@ -71,7 +67,6 @@ const Index = () => {
           return typeof val === "string" && val !== "";
         });
       }
-
       return false;
     },
     [selections]
@@ -90,7 +85,6 @@ const Index = () => {
       return { ...prev, [sectionId]: optionId };
     });
 
-    // Auto-advance for single-select sections (not multi, not subsections)
     if (!multi) {
       const currentSection = calculatorSections[activeStep - 1];
       if (currentSection && !currentSection.multiSelect && !currentSection.subsections && currentSection.id !== "quantity") {
@@ -160,29 +154,30 @@ const Index = () => {
   }, [selections]);
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen spatial-bg pb-32 relative z-10">
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="pt-12 pb-2 px-4 sm:px-6 text-center"
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="pt-10 sm:pt-14 pb-1 px-4 sm:px-6 text-center"
       >
-        <h1 className="text-3xl sm:text-5xl font-bold font-display">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight">
           <span className="gold-text">Configurateur</span>{" "}
           <span className="text-foreground">Packaging</span>
         </h1>
-        <p className="text-muted-foreground mt-3 text-sm sm:text-base max-w-xl mx-auto">
-          Créez votre emballage sur-mesure en quelques clics. Prix calculé en temps réel.
+        <p className="text-muted-foreground mt-2 sm:mt-3 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+          Créez votre emballage sur-mesure. Prix calculé en temps réel.
         </p>
       </motion.header>
 
-      {/* Step Progress */}
+      {/* Progress */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <StepProgress totalSteps={TOTAL_STEPS} activeStep={activeStep} />
       </div>
 
-      {/* Sections */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6">
+      {/* Sections (Bento Grid) */}
+      <main className="max-w-5xl mx-auto px-3 sm:px-6">
         {calculatorSections.map((section) => {
           const stepIndex = section.step;
           const isActive = stepIndex === activeStep;
@@ -201,11 +196,11 @@ const Index = () => {
               onContinue={handleContinue}
               onReopen={() => handleReopen(stepIndex)}
               selectionLabel={getSelectionLabel(section, selections)}
+              focusDepth={!allCompleted}
             />
           );
         })}
 
-        {/* Order Summary */}
         <AnimatePresence>
           {allCompleted && (
             <OrderSummary
@@ -219,7 +214,6 @@ const Index = () => {
         </AnimatePresence>
       </main>
 
-      {/* Sticky Price */}
       <PriceSummary unitPrice={unitPrice} quantity={quantity} total={total} />
     </div>
   );
